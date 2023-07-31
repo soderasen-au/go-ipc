@@ -1,0 +1,7 @@
+email:
+  server_type: smtp
+  host: smtp.gmail.com
+  port: 587
+  username: "soderasen.au@gmail.com"
+  password: "#5gpE9?M5TLNdJP^"
+  encryption: starttls
