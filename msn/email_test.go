@@ -17,7 +17,7 @@ var servers = []struct {
 			Host:       util.Ptr("smtp.gmail.com"),
 			Port:       util.Ptr(587),
 			Username:   util.Ptr("soderasen.au@gmail.com"),
-			Password:   util.Ptr("#5gpE9?M5TLNdJP^"),
+			Password:   util.Ptr("rscmpkbnogheveft"), //util.Ptr("#5gpE9?M5TLNdJP^"),
 			Encryption: util.Ptr(STARTTLS),
 		},
 		want: nil,
@@ -34,7 +34,21 @@ var servers = []struct {
 		},
 		want: util.MsgError("EmailServerConfigCheck", "invalid server type: smtt"),
 	},
+	{
+		name: "outlook",
+		server: EmailServerConfig{
+			ServerType: "smtp",
+			Host:       util.Ptr("smtp.office365.com"),
+			Port:       util.Ptr(587),
+			Username:   util.Ptr("soderasen.au@outlook.com"),
+			Password:   util.Ptr("tyhcpchmicjjzmes"),
+			Encryption: util.Ptr(STARTTLS),
+		},
+		want: util.MsgError("EmailServerConfigCheck", "invalid server type: smtt"),
+	},
 }
+
+//tyhcpchmicjjzmes
 
 func TestEmailServerConfig_Validate(t *testing.T) {
 	type fields struct {
@@ -52,5 +66,26 @@ func TestEmailServerConfig_Validate(t *testing.T) {
 				t.Errorf("Validate() = `%s`, want `%s`", util.JsonStr(got), util.JsonStr(tt.want))
 			}
 		})
+	}
+}
+
+func TestMailer_Send(t *testing.T) {
+	msg := Message{
+		From:  "Soderasen AU <soderasen.au@outlook.com>",
+		To:    []string{"jim.z.shi@gmail.com", "soderasen.au@gmail.com"},
+		Cc:    []string{"jim.z.shi@outlook.com"},
+		Bcc:   nil,
+		Title: "Test mail from gomail",
+		Body:  "This is test mail body\n\ncheers,\nSA",
+	}
+
+	mailer, res := NewMailer(servers[2].server)
+	if res != nil {
+		t.Errorf("NewMailer: %v", res.Error())
+	}
+
+	res = mailer.Send(msg)
+	if res != nil {
+		t.Errorf("Send: %v", res.Error())
 	}
 }
