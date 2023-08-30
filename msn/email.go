@@ -23,6 +23,7 @@ const (
 
 type EmailServerConfig struct {
 	ServerType EmailServerType        `json:"server_type,omitempty" yaml:"server_type"`
+	From       *string                `json:"from,omitempty" yaml:"from,omitempty"`
 	Host       *string                `json:"host,omitempty" yaml:"host"`
 	Port       *int                   `json:"port,omitempty" yaml:"port"`
 	Username   *string                `json:"username,omitempty" yaml:"username"`
@@ -60,7 +61,28 @@ type Mailer struct {
 
 func (m Mailer) Send(msg Message) *util.Result {
 	email := gomail.NewMSG()
-	email.SetFrom(msg.From).AddTo(msg.To...).AddCc(msg.Cc...).AddBcc(msg.Bcc...).SetSubject(msg.Title).SetBody(gomail.TextHTML, msg.Body)
+
+	if msg.From == "" {
+		return util.MsgError("MsgTo", "there's no From")
+	}
+	if len(msg.To) < 1 {
+		return util.MsgError("MsgTo", "there's no receipts")
+	}
+	if msg.Title == "" {
+		return util.MsgError("MsgTo", "there's no Title")
+	}
+	if msg.Body == "" {
+		return util.MsgError("MsgTo", "there's no Body")
+	}
+	email.SetFrom(msg.From).AddTo(msg.To...).SetSubject(msg.Title).SetBody(gomail.TextHTML, msg.Body)
+
+	if len(msg.Cc) > 0 {
+		email.AddCc(msg.Cc...)
+	}
+	if len(msg.Bcc) > 0 {
+		email.AddBcc(msg.Bcc...)
+	}
+
 	if err := email.Send(m.client); err != nil {
 		return util.Error("SendEmail", err)
 	}

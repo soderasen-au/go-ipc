@@ -71,7 +71,7 @@ func TestEmailServerConfig_Validate(t *testing.T) {
 
 func TestMailer_Send(t *testing.T) {
 	msg := Message{
-		From:  "Soderasen AU <soderasen.au@outlook.com>",
+		From:  "",
 		To:    []string{"jim.z.shi@gmail.com", "soderasen.au@gmail.com"},
 		Cc:    []string{"jim.z.shi@outlook.com"},
 		Bcc:   nil,
