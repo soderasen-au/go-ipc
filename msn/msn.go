@@ -1,6 +1,9 @@
 package msn
 
-import "github.com/soderasen-au/go-common/util"
+import (
+	"github.com/soderasen-au/go-common/util"
+	"sync"
+)
 
 type Config struct {
 	Email *EmailServerConfig `json:"email" yaml:"email"`
@@ -21,11 +24,14 @@ type Sender interface {
 }
 
 type Agent struct {
+	mu      sync.Mutex
 	Config  Config
 	Senders []Sender
 }
 
 func (a Agent) Send(m Message) *util.Result {
+	a.mu.Lock()
+	defer a.mu.Unlock()
 	for _, s := range a.Senders {
 		if res := s.Send(m); res != nil {
 			return res.With("Sender: " + s.Name())
