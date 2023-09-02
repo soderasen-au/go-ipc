@@ -22,13 +22,14 @@ const (
 )
 
 type EmailServerConfig struct {
-	ServerType EmailServerType        `json:"server_type,omitempty" yaml:"server_type"`
+	ServerType EmailServerType        `json:"server_type,omitempty" yaml:"server_type,omitempty"`
 	From       *string                `json:"from,omitempty" yaml:"from,omitempty"`
-	Host       *string                `json:"host,omitempty" yaml:"host"`
-	Port       *int                   `json:"port,omitempty" yaml:"port"`
-	Username   *string                `json:"username,omitempty" yaml:"username"`
-	Password   *string                `json:"password,omitempty" yaml:"password"`
-	Encryption *EmailServerEncryption `json:"encryption,omitempty" yaml:"encryption"`
+	Host       *string                `json:"host,omitempty" yaml:"host,omitempty"`
+	Port       *int                   `json:"port,omitempty" yaml:"port,omitempty"`
+	Username   *string                `json:"username,omitempty" yaml:"username,omitempty"`
+	Password   *string                `json:"password,omitempty" yaml:"password,omitempty"`
+	Encryption *EmailServerEncryption `json:"encryption,omitempty" yaml:"encryption,omitempty"`
+	KeepAlive  *bool                  `json:"keep_alive,omitempty" yaml:"keep_alive,omitempty"`
 }
 
 func (s *EmailServerConfig) Validate() *util.Result {
@@ -122,9 +123,9 @@ func NewMailer(cfg EmailServerConfig) (*Mailer, *util.Result) {
 	server.Username = util.MaybeNil(cfg.Username)
 	server.Password = util.MaybeNil(cfg.Password)
 	server.Encryption = getEncryptionMethod(util.MaybeNil(cfg.Encryption))
-	server.KeepAlive = false
-	server.ConnectTimeout = 10 * time.Second
-	server.SendTimeout = 10 * time.Second
+	server.KeepAlive = util.MaybeNil(cfg.KeepAlive)
+	server.ConnectTimeout = 30 * time.Second
+	server.SendTimeout = 30 * time.Second
 	server.TLSConfig = &tls.Config{InsecureSkipVerify: true}
 	smtpClient, err := server.Connect()
 	if err != nil {
