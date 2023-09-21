@@ -16,30 +16,37 @@ type RunMode int
 const (
 	WAITING RunMode = 0
 	SERVING RunMode = 1
+
+	Healthy   string = "ok"
+	UnHealthy string = "error"
 )
 
 func (m RunMode) String() string {
 	switch m {
 	case WAITING:
-		return "waiter"
+		return "WAITING"
 	case SERVING:
-		return "server"
+		return "SERVING"
 	}
 	return "unknown"
 }
 
 type Config struct {
-	PeerEndpoint   string `json:"peer_endpoint,omitempty"`
-	SkipVerifyCert bool   `json:"skip_verify_cert,omitempty"`
-	PeriodInSec    int    `json:"period_in_sec,omitempty"`
-	TimeoutInMs    int    `json:"timeout_in_ms,omitempty"`
-	Retries        int    `json:"retries,omitempty"`
+	PeerEndpoint   string `json:"peer_endpoint,omitempty" yaml:"peer_endpoint,omitempty"`
+	SkipVerifyCert bool   `json:"skip_verify_cert,omitempty" yaml:"skip_verify_cert,omitempty"`
+	PeriodInSec    int    `json:"period_in_sec,omitempty" yaml:"period_in_sec,omitempty"`
+	TimeoutInMs    int    `json:"timeout_in_ms,omitempty" yaml:"timeout_in_ms,omitempty"`
+	Retries        int    `json:"retries,omitempty" yaml:"retries"`
 }
 
 type Response struct {
 	Status    string    `json:"status,omitempty"`
-	Mode      string    `json:"mode,omitempty"`
+	Mode      RunMode   `json:"mode,omitempty"`
 	Timestamp time.Time `json:"timestamp"`
+}
+
+func (r Response) IsServing() bool {
+	return strings.ToLower(r.Status) == Healthy && r.Mode == SERVING
 }
 
 type Agent struct {
@@ -98,7 +105,6 @@ func (a Agent) ping() (*Response, *util.Result) {
 	}
 
 	logger.Debug().Msgf("peer status: %v", ret)
-	ret.Mode = strings.ToLower(ret.Mode)
 	ret.Status = strings.ToLower(ret.Status)
 	return &ret, nil
 }
@@ -139,18 +145,18 @@ func (a *Agent) loop() {
 
 func (a *Agent) handleResponse(resp *Response, res *util.Result) {
 	logger := a.Logger.With().Str("HA", "handleResponse").Logger()
-	logger.Debug().Msgf("Mode[%s] is handling %s with %s", a.Mode.String(), util.JsonStr(resp), util.JsonStr(res))
+	logger.Debug().Msgf(" - Mode[%s] is handling %s with %s", a.Mode.String(), util.JsonStr(resp), util.JsonStr(res))
 	oldMode := a.Mode
 	if res != nil || resp == nil {
 		a.Mode = SERVING
-	} else if strings.ToLower(resp.Status) == SERVING.String() {
+	} else if resp.IsServing() {
 		a.Mode = WAITING
 	} else {
 		a.Mode = SERVING
 	}
-	logger.Debug().Msgf("New mode is %s", a.Mode.String())
+	logger.Debug().Msgf(" - New mode is %s", a.Mode.String())
 	if a.Mode != oldMode {
-		logger.Info().Msgf("Mode %s => %s", oldMode.String(), a.Mode.String())
+		logger.Info().Msgf("   - Mode %s => %s", oldMode.String(), a.Mode.String())
 	}
 }
 
