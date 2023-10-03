@@ -6,7 +6,8 @@ import (
 )
 
 type Config struct {
-	Email *EmailServerConfig `json:"email" yaml:"email"`
+	Email          *EmailServerConfig `json:"email" yaml:"email"`
+	DefaultMessage *Message           `json:"default_message,omitempty" yaml:"default_message"`
 }
 
 type Message struct {
