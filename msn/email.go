@@ -77,6 +77,12 @@ func (m Mailer) Send(msg Message) *util.Result {
 	}
 	email.SetFrom(msg.From).AddTo(msg.To...).SetSubject(msg.Title).SetBody(gomail.TextHTML, msg.Body)
 
+	if msg.Attachments != nil {
+		for _, fp := range msg.Attachments {
+			email.Attach(&gomail.File{FilePath: fp})
+		}
+	}
+
 	if len(msg.Cc) > 0 {
 		email.AddCc(msg.Cc...)
 	}

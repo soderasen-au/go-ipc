@@ -11,12 +11,13 @@ type Config struct {
 }
 
 type Message struct {
-	From  string
-	To    []string
-	Cc    []string
-	Bcc   []string
-	Title string
-	Body  string
+	From        string
+	To          []string
+	Cc          []string
+	Bcc         []string
+	Title       string
+	Body        string
+	Attachments []string
 }
 
 type Sender interface {
