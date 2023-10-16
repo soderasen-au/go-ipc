@@ -116,7 +116,7 @@ func (a Agent) getResponse() (*Response, *util.Result) {
 			return resp, nil
 		}
 		time.Sleep(500 * time.Millisecond)
-		a.Logger.Warn().Err(res).Msgf("try[%d] failed: %s", i+1)
+		a.Logger.Warn().Err(res).Msgf("try[%d] failed", i+1)
 	}
 	return nil, util.MsgError("GetResponse", "failed after retries")
 }
@@ -126,6 +126,9 @@ func (a *Agent) loop() {
 	logger.Info().Msg("start")
 	ticker := time.NewTicker(time.Duration(a.Config.PeriodInSec) * time.Second)
 	a.stopChan = make(chan bool)
+
+	resp, res := a.getResponse()
+	a.handleResponse(resp, res)
 
 	for {
 		select {
