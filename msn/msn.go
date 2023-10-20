@@ -11,6 +11,7 @@ type Config struct {
 }
 
 type Message struct {
+	Id          string
 	From        string
 	To          []string
 	Cc          []string
