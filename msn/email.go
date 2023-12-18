@@ -214,24 +214,38 @@ func (m *Mailer) outResult(res *util.Result) *util.Result {
 	return res
 }
 
+func filterToList(m map[string]int, l []string) []string {
+	newTo := make([]string, 0)
+	for _, r := range l {
+		lr := strings.ToLower(r)
+		if _, ok := m[lr]; !ok {
+			newTo = append(newTo, r)
+			m[lr] = 0
+		}
+	}
+	return newTo
+}
+
 func (m *Mailer) doSend(msg Message) *util.Result {
 	logger := m.Logger.With().Str("mod", "mailer").Str("func", "doSend").Logger()
 	email := gomail.NewMSG()
 	defer func() { m.lastSent = time.Now() }()
 
+	toMap := make(map[string]int)
 	if msg.From == "" {
 		return m.outResult(util.LogMsgError(&logger, "MsgTo", "there's no From"))
 	}
 	if len(msg.To) < 1 {
 		return m.outResult(util.LogMsgError(&logger, "MsgTo", "there's no receipts"))
 	}
+
 	if msg.Title == "" {
 		return m.outResult(util.LogMsgError(&logger, "MsgTo", "there's no Title"))
 	}
 	if msg.Body == "" {
 		return m.outResult(util.LogMsgError(&logger, "MsgTo", "there's no Body"))
 	}
-	email.SetFrom(msg.From).AddTo(msg.To...).SetSubject(msg.Title).SetBody(gomail.TextHTML, msg.Body)
+	email.SetFrom(msg.From).AddTo(filterToList(toMap, msg.To)...).SetSubject(msg.Title).SetBody(gomail.TextHTML, msg.Body)
 	logger.Info().Msgf("sending [%s] to [%v]", msg.Title, msg.To)
 
 	if msg.Attachments != nil {
@@ -241,10 +255,10 @@ func (m *Mailer) doSend(msg Message) *util.Result {
 	}
 
 	if len(msg.Cc) > 0 {
-		email.AddCc(msg.Cc...)
+		email.AddCc(filterToList(toMap, msg.Cc)...)
 	}
 	if len(msg.Bcc) > 0 {
-		email.AddBcc(msg.Bcc...)
+		email.AddBcc(filterToList(toMap, msg.Bcc)...)
 	}
 
 	if err := email.Send(m.client); err != nil {
