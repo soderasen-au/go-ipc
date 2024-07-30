@@ -1,25 +1,27 @@
 package dialect
 
 import (
-	"github.com/soderasen-au/go-common/util"
-	"gorm.io/gorm"
 	"strings"
+
+	"gorm.io/gorm"
+
+	"github.com/soderasen-au/go-common/util"
 )
 
-type Dialect string
+type DBType string
 
 const (
-	MYSQL     Dialect = "mysql"
-	PG        Dialect = "postgresql"
-	SQLSERVER Dialect = "sqlserver"
-	SQLITE    Dialect = "sqlite"
+	MYSQL     DBType = "mysql"
+	PG        DBType = "postgresql"
+	SQLSERVER DBType = "sqlserver"
+	SQLITE    DBType = "sqlite"
 )
 
 type Opener interface {
 	Open(dsn string) (*gorm.DB, error)
 }
 
-func Parse(str string) (*Dialect, Opener) {
+func Parse(str string) (*DBType, Opener) {
 	switch strings.ToLower(str) {
 	case "mysql":
 		return util.Ptr(MYSQL), &MysqlOpener{}
