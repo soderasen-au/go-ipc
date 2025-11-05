@@ -53,7 +53,7 @@ func (s *EmailServerConfig) Validate() *util.Result {
 	s.Encryption = util.Ptr(EmailServerEncryption(enc))
 	if util.MaybeNil(s.Encryption) != NoEncryption {
 		if s.Username == nil || s.Password == nil {
-			return util.MsgError("EmailServerConfigCheck", "invalid username or passowrd")
+			return util.MsgError("EmailServerConfigCheck", "invalid username or password")
 		}
 	}
 	return nil
